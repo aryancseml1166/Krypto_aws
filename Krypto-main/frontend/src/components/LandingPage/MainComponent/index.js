@@ -47,7 +47,7 @@ function MainComponent() {
           </a>
           <RWebShare
             data={{
-              text: "Krypto made by Avi Vashishta using React JS.",
+              text: "Krypto",
               url: "https://crypto-dashboard-jan.netlify.app",
               title: "Krypto",
             }}
