@@ -1,7 +1,8 @@
 import { gettingDate } from "./getDate";
 
 export const settingChartData = (setChartData, prices1, prices2) => {
-  if (prices2) {
+  if (!prices1?.length) return;
+  if (prices2?.length) {
     setChartData({
       labels: prices1?.map((data) => gettingDate(data[0])),
       datasets: [

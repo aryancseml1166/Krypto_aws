@@ -5,7 +5,7 @@ import SearchIcon from "@mui/icons-material/Search";
 function Search({ search, handleChange }) {
   return (
     <div className="search-flex">
-      <SearchIcon sx={{ color: "var(--grey)", fontSize: "1.2rem" }} />
+      <SearchIcon sx={{ color: "var(--primary)", fontSize: "1.25rem" }} />
       <input
         className="search-input"
         placeholder="Search"

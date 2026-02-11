@@ -2,22 +2,26 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  width: 250px;
-  padding: 2rem;
+  width: 260px;
+  padding: 1.5rem;
   background-color: var(--darkgrey);
-  border-radius: 0.8rem;
-  border: 2px solid var(--darkgrey);
+  border-radius: 1rem;
+  border: 1px solid rgba(20, 184, 166, 0.12);
   cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .grid:hover {
-  border: 2px solid var(--green);
-  transition: all 0.3s;
+  border-color: var(--primary);
+  box-shadow: 0 8px 32px rgba(20, 184, 166, 0.15);
+  transform: translateY(-2px);
 }
 
 .grid-red:hover {
-  border: 2px solid var(--red);
-  transition: all 0.3s;
+  border-color: var(--red);
+  box-shadow: 0 8px 32px rgba(249, 65, 65, 0.12);
+  transform: translateY(-2px);
 }
 
 .img-flex {
@@ -38,12 +42,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid var(--green);
+  border: 2px solid var(--primary);
   border-radius: 50%;
-  color: var(--green);
+  color: var(--primary);
   padding: 0.5rem;
   height: 1.5rem;
   width: 1.5rem !important;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.watchlist-icon:hover {
+  background-color: var(--primary);
+  color: var(--black);
 }
 
 .watchlist-icon-red {

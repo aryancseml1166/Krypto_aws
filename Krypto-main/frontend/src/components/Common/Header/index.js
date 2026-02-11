@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../Button";
 import TemporaryDrawer from "./drawer";
 import "./styles.css";
@@ -6,18 +7,20 @@ import Switch from "@mui/material/Switch";
 import { toast } from "react-toastify";
 
 function Header() {
-
+  const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") == "dark"
   );
 
-  // ✅ CHECK LOGIN STATUS
   const isLoggedIn = localStorage.getItem("token");
 
   const logout = () => {
+    const userEmail = localStorage.getItem("userEmail") || "User";
     localStorage.removeItem("token");
     localStorage.removeItem("role");
-    window.location.href = "/login";
+    localStorage.removeItem("userEmail");
+    toast.info(`${userEmail} has logged out.`);
+    navigate("/");
   };
 
   useEffect(() => {
@@ -51,7 +54,7 @@ function Header() {
   return (
     <div className="header">
       <h1>
-        Krypto<span style={{ color: "var(--blue)" }}>.</span>
+        Krypto<span style={{ color: "var(--primary)" }}>.</span>
       </h1>
 
       <div className="links">

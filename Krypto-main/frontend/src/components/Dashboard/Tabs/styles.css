@@ -1,17 +1,61 @@
+.tabs-wrapper {
+  border-bottom: 1px solid rgba(20, 184, 166, 0.2);
+  margin-bottom: 1.5rem;
+}
+
+.tabs-wrapper .MuiTabIndicator-root {
+  background-color: var(--primary);
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
 .grid-flex {
   display: flex;
   justify-content: center;
   align-items: flex-start;
   flex-wrap: wrap;
   width: 100%;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .list-flex {
-  width: 90%;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
+  display: table;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.list-flex thead th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--grey);
+  border: none;
+}
+
+.list-flex thead th:first-child {
+  padding-left: 1.5rem;
+}
+
+.list-empty-cell {
+  text-align: center;
+  padding: 3rem 1.5rem !important;
+  vertical-align: middle;
+}
+
+.list-empty-title {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--white);
+}
+
+.list-empty-text {
+  font-size: 0.9rem;
+  color: var(--grey);
+  margin: 0 0 1.25rem 0;
 }
 
 @media only screen and (max-width: 600px) {

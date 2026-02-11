@@ -17,19 +17,20 @@ export default function TabsComponent({ coins, setSearch }) {
   };
 
   const style = {
-    color: "var(--white)",
-    "& .Mui-selected": {
-      color: "var(--blue) !important",
+    color: "var(--grey)",
+    "&.Mui-selected": {
+      color: "var(--primary) !important",
     },
-    fontFamily: "Inter,sans-serif",
+    fontFamily: "Inter, sans-serif",
     fontWeight: 600,
     textTransform: "capitalize",
+    fontSize: "0.95rem",
   };
 
   return (
     <TabContext value={value}>
-      <div style={{ borderBottom: 1, borderColor: "divider" }}>
-        <TabList onChange={handleChange} variant="fullWidth">
+      <div className="tabs-wrapper">
+        <TabList onChange={handleChange} variant="fullWidth" className="tabs-list">
           <Tab label="Grid" value="grid" sx={style} />
           <Tab label="List" value="list" sx={style} />
         </TabList>
@@ -60,26 +61,32 @@ export default function TabsComponent({ coins, setSearch }) {
       </TabPanel>
       <TabPanel value="list">
         <table className="list-flex">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Coin</th>
+              <th>24h</th>
+              <th>Price</th>
+              <th>Volume</th>
+              <th>Market Cap</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
           {coins.length > 0 ? (
             coins.map((coin, i) => (
-              <List coin={coin} key={i} delay={(i % 8) * 0.2} />
+              <List coin={coin} key={i} index={i + 1} delay={(i % 8) * 0.2} />
             ))
           ) : (
-            <div>
-              <h1 style={{ textAlign: "center" }}>
-                Sorry, Couldn't find the coin you're looking for 😞
-              </h1>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  margin: "2rem",
-                }}
-              >
+            <tr>
+              <td colSpan={7} className="list-empty-cell">
+                <h2 className="list-empty-title">No coins found</h2>
+                <p className="list-empty-text">Try a different search or clear the filter.</p>
                 <Button text="Clear Search" onClick={() => setSearch("")} />
-              </div>
-            </div>
+              </td>
+            </tr>
           )}
+          </tbody>
         </table>
       </TabPanel>
     </TabContext>

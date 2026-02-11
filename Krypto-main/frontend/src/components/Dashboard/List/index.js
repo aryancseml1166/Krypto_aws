@@ -8,8 +8,7 @@ import StarOutlineIcon from "@mui/icons-material/StarOutline";
 import StarIcon from "@mui/icons-material/Star";
 import API from "../../../api";
 
-function List({ coin, delay }) {
-
+function List({ coin, delay, index }) {
   const [isCoinAdded, setIsCoinAdded] = useState(false);
 
   useEffect(() => {
@@ -22,6 +21,7 @@ function List({ coin, delay }) {
 
   const handleWatchlist = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
 
     try {
 
@@ -39,16 +39,15 @@ function List({ coin, delay }) {
   };
 
   return (
-    <a href={`/coin/${coin.id}`}>
-      <motion.tr className="list-row">
-
-        <td>
-          <img src={coin.image} className="coin-image coin-image-td" />
-        </td>
-
-        <td>
-          <p className="coin-symbol">{coin.symbol}</p>
-          <p className="coin-name">{coin.name}</p>
+    <a href={`/coin/${coin.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+      <motion.tr className="list-row" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: delay }}>
+        <td className="td-rank">{index}</td>
+        <td className="td-coin">
+          <img src={coin.image} className="coin-image coin-image-td" alt="" />
+          <div className="coin-info-inline">
+            <p className="coin-symbol">{coin.symbol}</p>
+            <p className="coin-name">{coin.name}</p>
+          </div>
         </td>
 
         {coin.price_change_percentage_24h >= 0 ? (
@@ -71,7 +70,7 @@ function List({ coin, delay }) {
         <td>{coin.total_volume.toLocaleString()}</td>
         <td>${convertNumber(coin.market_cap)}</td>
 
-        <td className="watchlist-icon" onClick={handleWatchlist}>
+        <td className="td-watchlist" onClick={handleWatchlist}>
           {isCoinAdded ? <StarIcon /> : <StarOutlineIcon />}
         </td>
 

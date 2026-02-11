@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Info from "../components/CoinPage/Info";
 import LineChart from "../components/CoinPage/LineChart";
 import ToggleComponents from "../components/CoinPage/ToggleComponent";
@@ -14,98 +14,158 @@ import { settingCoinObject } from "../functions/settingCoinObject";
 
 function Compare() {
   const [allCoins, setAllCoins] = useState([]);
-  const [loading, setLoading] = useState(false);
-  // id states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [crypto1, setCrypto1] = useState("bitcoin");
   const [crypto2, setCrypto2] = useState("ethereum");
-  // data states
   const [coin1Data, setCoin1Data] = useState({});
   const [coin2Data, setCoin2Data] = useState({});
-  // days state
   const [days, setDays] = useState(30);
   const [priceType, setPriceType] = useState("prices");
-  const [chartData, setChartData] = useState({
-    labels: [],
-    datasets: [],
-  });
+  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+
+  const abortRef = useRef(null);
+
+  const abortPrevious = () => {
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = new AbortController();
+    return abortRef.current.signal;
+  };
 
   useEffect(() => {
     getData();
+    return () => {
+      if (abortRef.current) abortRef.current.abort();
+    };
   }, []);
 
   const getData = async () => {
     setLoading(true);
-    const coins = await get100Coins();
-    if (coins) {
-      setAllCoins(coins);
-      const data1 = await getCoinData(crypto1);
-      const data2 = await getCoinData(crypto2);
-      settingCoinObject(data1, setCoin1Data);
-      settingCoinObject(data2, setCoin2Data);
-      if (data1 && data2) {
-        // getPrices
-        const prices1 = await getPrices(crypto1, days, priceType);
-        const prices2 = await getPrices(crypto2, days, priceType);
-        settingChartData(setChartData, prices1, prices2);
+    setError(false);
+    const signal = abortPrevious();
+
+    try {
+      const [coins, data1, data2] = await Promise.all([
+        get100Coins(signal),
+        getCoinData(crypto1, null, signal),
+        getCoinData(crypto2, null, signal),
+      ]);
+
+      if (signal?.aborted) return;
+      if (!coins?.length) {
+        setError(true);
         setLoading(false);
+        return;
       }
+      setAllCoins(coins);
+
+      if (data1) settingCoinObject(data1, setCoin1Data);
+      if (data2) settingCoinObject(data2, setCoin2Data);
+
+      const [prices1, prices2] = await Promise.all([
+        getPrices(crypto1, days, priceType, null, signal),
+        getPrices(crypto2, days, priceType, null, signal),
+      ]);
+
+      if (signal?.aborted) return;
+      if (prices1 && prices2) settingChartData(setChartData, prices1, prices2);
+    } catch (e) {
+      if (e?.name !== "AbortError") setError(true);
+    } finally {
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
   const onCoinChange = async (e, isCoin2) => {
     setLoading(true);
+    const signal = abortPrevious();
+    const newCrypto = e.target.value;
+
     if (isCoin2) {
-      const newCrypto2 = e.target.value;
-      // crypto2 is being changed
-      setCrypto2(newCrypto2);
-      // fetch coin2 data
-      const data2 = await getCoinData(newCrypto2);
-      settingCoinObject(data2, setCoin2Data);
-      // fetch prices again
-      const prices1 = await getPrices(crypto1, days, priceType);
-      const prices2 = await getPrices(newCrypto2, days, priceType);
-      settingChartData(setChartData, prices1, prices2);
+      setCrypto2(newCrypto);
+      try {
+        const [data2, prices1, prices2] = await Promise.all([
+          getCoinData(newCrypto, null, signal),
+          getPrices(crypto1, days, priceType, null, signal),
+          getPrices(newCrypto, days, priceType, null, signal),
+        ]);
+        if (signal?.aborted) return;
+        if (data2) settingCoinObject(data2, setCoin2Data);
+        if (prices1 && prices2) settingChartData(setChartData, prices1, prices2);
+      } catch (err) {
+        if (err?.name !== "AbortError") setError(true);
+      }
     } else {
-      const newCrypto1 = e.target.value;
-      // crypto1 is being changed
-      setCrypto1(newCrypto1);
-      // fetch coin1 data
-      const data1 = await getCoinData(newCrypto1);
-      settingCoinObject(data1, setCoin1Data);
-      // fetch coin prices
-      const prices1 = await getPrices(newCrypto1, days, priceType);
-      const prices2 = await getPrices(crypto2, days, priceType);
-      settingChartData(setChartData, prices1, prices2);
+      setCrypto1(newCrypto);
+      try {
+        const [data1, prices1, prices2] = await Promise.all([
+          getCoinData(newCrypto, null, signal),
+          getPrices(newCrypto, days, priceType, null, signal),
+          getPrices(crypto2, days, priceType, null, signal),
+        ]);
+        if (signal?.aborted) return;
+        if (data1) settingCoinObject(data1, setCoin1Data);
+        if (prices1 && prices2) settingChartData(setChartData, prices1, prices2);
+      } catch (err) {
+        if (err?.name !== "AbortError") setError(true);
+      }
     }
-    setLoading(false);
+    if (!signal?.aborted) setLoading(false);
   };
 
   const handleDaysChange = async (e) => {
-    const newDays = e.target.value;
-    setLoading(true);
+    const newDays = Number(e.target.value);
     setDays(newDays);
-    const prices1 = await getPrices(crypto1, newDays, priceType);
-    const prices2 = await getPrices(crypto2, newDays, priceType);
-    settingChartData(setChartData, prices1, prices2);
-    setLoading(false);
+    setLoading(true);
+    const signal = abortPrevious();
+
+    try {
+      const [prices1, prices2] = await Promise.all([
+        getPrices(crypto1, newDays, priceType, null, signal),
+        getPrices(crypto2, newDays, priceType, null, signal),
+      ]);
+      if (signal?.aborted) return;
+      if (prices1 && prices2) settingChartData(setChartData, prices1, prices2);
+    } catch (err) {
+      if (err?.name !== "AbortError") setError(true);
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
   };
 
   const handlePriceTypeChange = async (e) => {
     const newPriceType = e.target.value;
-    setLoading(true);
     setPriceType(newPriceType);
-    const prices1 = await getPrices(crypto1, days, newPriceType);
-    const prices2 = await getPrices(crypto2, days, newPriceType);
-    settingChartData(setChartData, prices1, prices2);
-    setLoading(false);
+    setLoading(true);
+    const signal = abortPrevious();
+
+    try {
+      const [prices1, prices2] = await Promise.all([
+        getPrices(crypto1, days, newPriceType, null, signal),
+        getPrices(crypto2, days, newPriceType, null, signal),
+      ]);
+      if (signal?.aborted) return;
+      if (prices1 && prices2) settingChartData(setChartData, prices1, prices2);
+    } catch (err) {
+      if (err?.name !== "AbortError") setError(true);
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
   };
+
+  const ready = !loading && coin1Data?.id && coin2Data?.id && !error;
 
   return (
     <div>
       <Header />
-      {loading || !coin1Data?.id || !coin2Data?.id ? (
+      {error && (
+        <div style={{ textAlign: "center", padding: "2rem", color: "var(--grey)" }}>
+          Failed to load data. Check your connection or try again later.
+        </div>
+      )}
+      {!ready && !error ? (
         <Loader />
-      ) : (
+      ) : ready ? (
         <>
           <SelectCoins
             allCoins={allCoins}
@@ -131,7 +191,7 @@ function Compare() {
           <Info title={coin1Data.name} desc={coin1Data.desc} />
           <Info title={coin2Data.name} desc={coin2Data.desc} />
         </>
-      )}
+      ) : null}
     </div>
   );
 }

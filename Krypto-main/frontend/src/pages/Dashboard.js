@@ -1,13 +1,13 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Header from "../components/Common/Header";
 import Loader from "../components/Common/Loader";
 import Search from "../components/Dashboard/Search";
 import TabsComponent from "../components/Dashboard/Tabs";
-
 import PaginationComponent from "../components/Dashboard/Pagination";
 import TopButton from "../components/Common/TopButton";
 import Footer from "../components/Common/Footer/footer";
+import { get100Coins } from "../functions/get100Coins";
+import "./Dashboard.css";
 
 function Dashboard() {
   const [coins, setCoins] = useState([]);
@@ -21,21 +21,19 @@ function Dashboard() {
     getData();
   }, []);
 
-  const getData = () => {
+  const getData = async () => {
     setLoading(true);
-    axios
-      .get(
-        "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false"
-      )
-      .then((response) => {
-        console.log("RESPONSE>>>", response.data);
-        setCoins(response.data);
-        setPaginatedCoins(response.data.slice(0, 10));
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.log("ERROR>>>", error.message);
-      });
+    try {
+      const data = await get100Coins();
+      if (data?.length) {
+        setCoins(data);
+        setPaginatedCoins(data.slice(0, 10));
+      }
+    } catch (e) {
+      console.error("Dashboard getData:", e?.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -71,19 +69,25 @@ function Dashboard() {
       {loading ? (
         <Loader />
       ) : (
-        <>
+        <div className="dashboard-page">
+          <header className="dashboard-header">
+            <h1 className="dashboard-title">Market</h1>
+            <p className="dashboard-subtitle">Top 100 coins by market cap · real-time data</p>
+          </header>
           <Search search={search} handleChange={handleChange} />
-          <TabsComponent
-            coins={search ? filteredCoins : paginatedCoins}
-            setSearch={setSearch}
-          />
-          {!search && (
-            <PaginationComponent
-              page={page}
-              handlePageChange={handlePageChange}
+          <div className="dashboard-content">
+            <TabsComponent
+              coins={search ? filteredCoins : paginatedCoins}
+              setSearch={setSearch}
             />
-          )}
-        </>
+            {!search && (
+              <PaginationComponent
+                page={page}
+                handlePageChange={handlePageChange}
+              />
+            )}
+          </div>
+        </div>
       )}
       <TopButton />
       <Footer />
